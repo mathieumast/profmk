@@ -38,9 +38,9 @@
      */
     this.callbacks = function() {
       return {
-        done : _callbacks.done.slice(),
-        fail : _callbacks.fail.slice(),
-        progress : _callbacks.progress.slice()
+        done : slice(_callbacks.done),
+        fail : slice(_callbacks.fail),
+        progress : slice(_callbacks.progress)
       };
     };
     /**
@@ -95,19 +95,19 @@
    * Notify that the Future object is done.
    */
   _Future.prototype.notifyDone = function() {
-    this._notify("done", Array.prototype.slice.call(arguments));
+    this._notify("done", slice(arguments));
   };
   /**
    * Notify that the Future object is failed.
    */
   _Future.prototype.notifyFail = function() {
-    this._notify("fail", Array.prototype.slice.call(arguments));
+    this._notify("fail", slice(arguments));
   };
   /**
    * Notify that the Future object is in progress.
    */
   _Future.prototype.notifyProgress = function() {
-    this._notify("progress", Array.prototype.slice.call(arguments));
+    this._notify("progress", slice(arguments));
   };
 
   /**
@@ -150,24 +150,35 @@
   };
   
   /**
-   * Test if the parameter is an array.
+   * Returns true if object is an array.
    */
   var isArray = Array.isArray || function(obj) {
     return toString.call(obj) == "[object Array]";
   };
 
-  var indexOf = Array.prototype.indexOf || function(obj) {
+  /**
+   * Returns the index of item in the array or -1 if item is not found.
+   */
+  var indexOf = Array.prototype.indexOf || function(array, item) {
     var i = 0, l = array.length;
     for (; i < l; i++) if (array[i] === item) return i;
     return -1;
+  };
+  
+  /**
+   * Slice object (array or arguments).
+   */
+  var slice = function(obj, start, end) {
+    return Array.prototype.slice.call(obj, start, end);
   };
   
   proFmk.future = function() {
     return new _Future();
   };
   proFmk.when = function() {
-    return new _When(Array.prototype.slice.call(arguments));
+    return new _When(slice(arguments));
   };
   proFmk.isArray = isArray;
   proFmk.indexOf = indexOf;
+  proFmk.slice = slice;
 }).call(this);
