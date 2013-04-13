@@ -4,6 +4,10 @@
   "version": "0.5.1",
   "author": "Mathieu MAST",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mathieumast/proFmk.git"
+  },
   "devDependencies": {
     "mocha": "*",
     "chai": "*"
