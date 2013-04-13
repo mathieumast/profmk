@@ -1,6 +1,6 @@
 /**
  * Compact promise pattern implementation and more.
- * (https://github.com/mathieumast/proFmk)
+ * (https://github.com/mathieumast/profmk)
  * 
  * Version : 0.5.1
  * 
@@ -11,17 +11,17 @@
 (function() {
   "use strict";
 
-  var proFmk = {};
+  var profmk = {};
 
   if (typeof define === "function" && define.amd) {
-    define("proFmk", function() {
-      return proFmk;
+    define("profmk", function() {
+      return profmk;
     });
   } else if (typeof module !== "undefined" && module.exports) {
-    module.exports = proFmk;
+    module.exports = profmk;
   } else {
     var root = this;
-    root["proFmk"] = proFmk;
+    root["profmk"] = profmk;
   }
 
   /**
@@ -172,13 +172,13 @@
     return Array.prototype.slice.call(obj, start, end);
   };
   
-  proFmk.future = function() {
+  profmk.future = function() {
     return new _Future();
   };
-  proFmk.when = function() {
+  profmk.when = function() {
     return new _When(slice(arguments));
   };
-  proFmk.isArray = isArray;
-  proFmk.indexOf = indexOf;
-  proFmk.slice = slice;
+  profmk.isArray = isArray;
+  profmk.indexOf = indexOf;
+  profmk.slice = slice;
 }).call(this);

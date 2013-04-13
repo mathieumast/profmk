@@ -1,12 +1,12 @@
 {
-  "name": "proFmk",
+  "name": "profmk",
   "description": "Compact promise pattern implementation and more.",
   "version": "0.5.1",
   "author": "Mathieu MAST",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mathieumast/proFmk.git"
+    "url": "https://github.com/mathieumast/profmk.git"
   },
   "devDependencies": {
     "mocha": "*",
