@@ -1,0 +1,14 @@
+{
+  "name": "proFmk",
+  "description": "Compact promise pattern implementation and more.",
+  "version": "0.5.1",
+  "author": "Mathieu MAST",
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "*",
+    "chai": "*"
+  },
+  "scripts": {
+    "test": "node_modules/mocha/bin/mocha test/test.js"
+  }
+}

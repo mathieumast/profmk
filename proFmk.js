@@ -2,7 +2,7 @@
  * Compact promise pattern implementation and more.
  * (https://github.com/mathieumast/proFmk)
  * 
- * Version : 0.5.0
+ * Version : 0.5.1
  * 
  * Copyright (c) 2013, Mathieu MAST
  * 
@@ -68,7 +68,7 @@
     this._notify = function(type, array) {
       if (_step === "progress") {
         _step = type;
-        window.setTimeout(function() {
+        setTimeout(function() {
           var _callbacks = _promise.callbacks();
           for ( var i = 0; i < _callbacks[type].length; i++) {
             var callback = _callbacks[type][i];
