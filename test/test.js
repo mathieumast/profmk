@@ -2,9 +2,40 @@ var profmk = require("../profmk");
 var expect = require("chai").expect;
 var assert = require("chai").assert;
 
-describe("profmk", function() {
+describe("inherit with extend", function() {
 
-  it("future: progress & done", function(done) {
+  var Parent = function() {
+    this.num = 6;
+    this.str = "string";
+  };
+  Parent.prototype.info = function() {
+    return this.num + " " + this.str;
+  };
+
+  var Child = function() {
+    profmk.extend(this, new Parent());
+  };
+  profmk.extend(Child.prototype, Parent.prototype);
+
+  it("inherit 1", function() {
+    var parent = new Parent();
+    expect(parent.info()).to.equal("6 string");
+    parent.num = 7;
+    parent.str = "toto";
+    expect(parent.info()).to.equal("7 toto");
+
+    var child = new Child();
+    expect(child.info()).to.equal("6 string");
+    parent.num = 9;
+    parent.str = "titi";
+    expect(parent.info()).to.equal("9 titi");
+  });
+
+})
+
+describe("future", function() {
+
+  it("progress & done", function(done) {
     var future = profmk.future();
     var progress = 0;
     future.then(function(obj) {
@@ -12,7 +43,7 @@ describe("profmk", function() {
       expect(progress).to.equal(3);
       done();
     }, function(obj) {
-      assert(false, "must be called!");
+      assert(false, "must not be called!");
     }, function(obj) {
       expect(obj).to.equal("progress");
       progress++;
@@ -23,12 +54,12 @@ describe("profmk", function() {
     future.notifyProgress("progress");
     future.notifyDone("done");
   });
-  
-  it("future: progress & fail", function(done) {
+
+  it("progress & fail", function(done) {
     var future = profmk.future();
     var progress = 0;
     future.then(function(obj) {
-      assert(false, "must be called!");
+      assert(false, "must not be called!");
     }, function(obj) {
       expect(obj).to.equal("fail");
       expect(progress).to.equal(3);
@@ -44,7 +75,42 @@ describe("profmk", function() {
     future.notifyFail("fail");
   });
 
-  it("future -> promise: progress & done", function(done) {
+  it("done & !progress & !fail", function(done) {
+    var future = profmk.future();
+    var promise = future.promise();
+    promise.then(function(obj) {
+      setTimeout(done, 100);
+    }, function(obj) {
+      assert(false, "must not be called!");
+    }, function(obj) {
+      assert(false, "must not be called!");
+    });
+
+    future.notifyDone("done");
+    future.notifyProgress("progress");
+    future.notifyFail("fail");
+  });
+
+  it("fail & !progress & !done", function(done) {
+    var future = profmk.future();
+    var promise = future.promise();
+    promise.then(function(obj) {
+      assert(false, "must not be called!");
+    }, function(obj) {
+      setTimeout(done, 100);
+    }, function(obj) {
+      assert(false, "must not be called!");
+    });
+
+    future.notifyFail("fail");
+    future.notifyProgress("progress");
+    future.notifyDone("done");
+  });
+});
+
+describe("promise", function() {
+
+  it("progress & done", function(done) {
     var future = profmk.future();
     var promise = future.promise();
     var progress = 0;
@@ -53,7 +119,7 @@ describe("profmk", function() {
       expect(progress).to.equal(3);
       done();
     }, function(obj) {
-      assert(false, "must be called!");
+      assert(false, "must not be called!");
     }, function(obj) {
       expect(obj).to.equal("progress");
       progress++;
@@ -64,13 +130,13 @@ describe("profmk", function() {
     future.notifyProgress("progress");
     future.notifyDone("done");
   });
-  
-  it("future -> promise: progress & fail", function(done) {
+
+  it("progress & fail", function(done) {
     var future = profmk.future();
     var promise = future.promise();
     var progress = 0;
     promise.then(function(obj) {
-      assert(false, "must be called!");
+      assert(false, "must not be called!");
     }, function(obj) {
       expect(obj).to.equal("fail");
       expect(progress).to.equal(3);
@@ -85,36 +151,30 @@ describe("profmk", function() {
     future.notifyProgress("progress");
     future.notifyFail("fail");
   });
+
+});
+
+describe("when", function() {
   
-  it("future: done & !progress & !fail", function(done) {
-    var future = profmk.future();
-    var promise = future.promise();
-    promise.then(function(obj) {
-      setTimeout(done, 100);
+  it("progress & done", function(done) {
+    var future1 = profmk.future();
+    var future2 = profmk.future();
+    var future3 = profmk.future();
+    var when = profmk.when(future1, future2, future3);
+    var progress = 0;
+    when.then(function() {
+      expect(profmk.slice(arguments)).to.deep.equal(["done1", "done2", "done3"]);
+      expect(progress).to.equal(2);
+      done();
     }, function(obj) {
       assert(false, "must be called!");
     }, function(obj) {
-      assert(false, "must be called!");
+      progress++;
     });
 
-    future.notifyDone("done");
-    future.notifyProgress("progress");
-    future.notifyFail("fail");
+    future1.notifyDone("done1");
+    future2.notifyDone("done2");
+    future3.notifyDone("done3");
   });
   
-  it("future: fail & !progress & !done", function(done) {
-    var future = profmk.future();
-    var promise = future.promise();
-    promise.then(function(obj) {
-      assert(false, "must be called!");
-    }, function(obj) {
-      setTimeout(done, 100);
-    }, function(obj) {
-      assert(false, "must be called!");
-    });
-
-    future.notifyFail("fail");
-    future.notifyProgress("progress");
-    future.notifyDone("done");
-  });
 });
