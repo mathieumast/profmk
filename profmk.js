@@ -2,7 +2,7 @@
  * Compact promise pattern implementation and more.
  * (https://github.com/mathieumast/profmk)
  * 
- * Version : 0.5.2
+ * Version : 0.5.3
  * 
  * Copyright (c) 2013, Mathieu MAST
  * 
@@ -103,6 +103,7 @@
     } else {
       obj = new Obj();
     }
+    return obj;
   };
 
   /**
@@ -145,7 +146,7 @@
    * Future implementation.
    */
   var _Future = function() {
-    var _step = "progress", _promise = new _Promise(), self = this;
+    var _step = "progress", _promise = new _Promise();
     this._notify = function(type, array) {
       if (_step === "progress") {
         _step = type;
