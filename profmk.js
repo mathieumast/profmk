@@ -1,7 +1,7 @@
 /**
  * Compact promise pattern implementation and more. (https://github.com/mathieumast/profmk)
  * 
- * Version : 0.5.4
+ * Version : 0.5.5
  * 
  * Copyright (c) 2013, Mathieu MAST
  * 
@@ -13,21 +13,27 @@
     var profmk = {};
 
     profmk.errors = {
-        timeout : "Timeout error"
+        timeout: "Timeout error"
     };
 
     /**
      * Slice object (array or arguments).
      */
     profmk.slice = function(obj, start, end) {
-        return Array.prototype.slice.call(obj, start, end);
+        if (!!end) {
+            return Array.prototype.slice.call(obj, start, end);
+        } else if (!!start) {
+            return Array.prototype.slice.call(obj, start);
+        } else {
+            return Array.prototype.slice.call(obj);
+        }
     };
 
     /**
      * Invoke function for context and many arguments and return promise.
      */
     profmk.invoke = function(context, func) {
-        var res = func.apply(this, profmk.slice(arguments, 2));
+        var res = func.apply(context, profmk.slice(arguments, 2));
         return profmk.future().notifyDone(res).promise();
     };
 
@@ -49,7 +55,7 @@
         var args = profmk.slice(arguments, 1), i = 0, l = args.length;
         for (; i < l; i++) {
             var source = args[i];
-            for ( var prop in source) {
+            for (var prop in source) {
                 dest[prop] = source[prop];
             }
         }
@@ -63,21 +69,27 @@
         if (profmk.isArray(args)) {
             var obj;
             switch (args.length) {
-            case 0:
-                obj = new func();
-                break;
-            case 1:
-                obj = new func(args[0]);
-                break;
-            case 2:
-                obj = new func(args[0], args[1]);
-                break;
-            default:
-                var q = [];
-                for ( var i = 0; i < args.length; i++) {
-                    q.push("args[" + i + "]");
-                }
-                obj = eval("new func(" + q.join(",") + ")");
+                case 0:
+                    obj = new func();
+                    break;
+                case 1:
+                    obj = new func(args[0]);
+                    break;
+                case 2:
+                    obj = new func(args[0], args[1]);
+                    break;
+                case 3:
+                    obj = new func(args[0], args[1], args[2]);
+                    break;
+                case 4:
+                    obj = new func(args[0], args[1], args[2], args[3]);
+                    break;
+                default:
+                    var q = [];
+                    for (var i = 0; i < args.length; i++) {
+                        q.push("args[" + i + "]");
+                    }
+                    obj = eval("new func(" + q.join(",") + ")");
             }
             return obj;
         } else {
@@ -90,18 +102,18 @@
      */
     var _Promise = function() {
         var _callbacks = {
-            done : [],
-            fail : [],
-            progress : []
+            done: [],
+            fail: [],
+            progress: []
         };
         /*
          * Return copy of callbacks.
          */
         this.callbacks = function() {
             return {
-                done : profmk.slice(_callbacks.done),
-                fail : profmk.slice(_callbacks.fail),
-                progress : profmk.slice(_callbacks.progress)
+                done: profmk.slice(_callbacks.done),
+                fail: profmk.slice(_callbacks.fail),
+                progress: profmk.slice(_callbacks.progress)
             };
         };
         /*
@@ -130,7 +142,7 @@
                 _step = type;
                 setTimeout(function() {
                     var _callbacks = _promise.callbacks();
-                    for ( var i = 0; i < _callbacks[type].length; i++) {
+                    for (var i = 0; i < _callbacks[type].length; i++) {
                         var callback = _callbacks[type][i];
                         callback.apply(_ctx, array);
                     }
@@ -182,7 +194,7 @@
     var _When = function(objs) {
         profmk.extend(this, new _Future());
         var _results = [], _remaining = objs.length, _ctx = this;
-        for ( var i = 0; i < objs.length; i++) {
+        for (var i = 0; i < objs.length; i++) {
             var elem = objs[i], promise;
             if (profmk.isUndefined(elem) || profmk.isNull(elem)) {
                 promise = profmk.future().notifyDone(null).promise();
@@ -224,7 +236,7 @@
      * Get a new wait promise object.
      */
     profmk.wait = function(ms) {
-        var future = profmk.future(), objs = [ future ].concat(profmk.slice(arguments, 1));
+        var future = profmk.future(), objs = [future].concat(profmk.slice(arguments, 1));
         var when = new _When(objs);
         setTimeout(function() {
             future.notifyDone(ms);
@@ -236,7 +248,7 @@
      * Get a new timeout promise object.
      */
     profmk.timeout = function(ms) {
-        var when = new _When([ ms ].concat(profmk.slice(arguments, 1)));
+        var when = new _When([ms].concat(profmk.slice(arguments, 1)));
         setTimeout(function() {
             when.notifyFail(profmk.errors.timeout);
         }, ms);
@@ -246,11 +258,11 @@
     /*
      * Function isArray, isObject, isFunction, isString, isBoolean, isNumber, isDate, isRegExp, isUndefined, isNull.
      */
-    var types = [ "Array", "Object", "Function", "String", "Boolean", "Number", "Date", "RegExp", "Undefined", "Null" ];
-    for ( var i = 0; i < types.length; i++) {
+    var types = ["Array", "Object", "Function", "String", "Boolean", "Number", "Date", "RegExp", "Undefined", "Null"];
+    for (var i = 0; i < types.length; i++) {
         profmk.invoke(profmk, function(type) {
             profmk["is" + type] = function(obj) {
-                return toString.call(obj) == "[object " + type + "]";
+                return (Object.prototype.toString.call(obj) == "[object " + type + "]");
             };
         }, types[i]);
     }
