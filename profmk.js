@@ -1,7 +1,7 @@
 /**
  * Compact promise pattern implementation and more. (https://github.com/mathieumast/profmk)
  * 
- * Version : 0.5.5
+ * Version : 0.5.6
  * 
  * Copyright (c) 2013, Mathieu MAST
  * 
@@ -38,6 +38,16 @@
     };
 
     /**
+     * Asynchrone invoke function for context and many arguments and return promise.
+     */
+    profmk.async = function(context, func) {
+        setTimeout(function() {
+            var res = func.apply(context, profmk.slice(arguments, 2));
+            return profmk.future().notifyDone(res).promise();
+        }, 1);
+    };
+
+    /**
      * Returns the index of item in the array or -1 if item is not found.
      */
     profmk.indexOf = Array.prototype.indexOf || function(array, item) {
@@ -63,7 +73,7 @@
     };
 
     /**
-     * Create a new instance of function and arguments.
+     * Create a new instance of function and arguments in array.
      */
     profmk.instantiate = function(func, args) {
         if (profmk.isArray(args)) {
@@ -140,13 +150,13 @@
         this._notify = function(type, array) {
             if (_step === "progress") {
                 _step = type;
-                setTimeout(function() {
+                profmk.async(this, function() {
                     var _callbacks = _promise.callbacks();
                     for (var i = 0; i < _callbacks[type].length; i++) {
                         var callback = _callbacks[type][i];
                         callback.apply(_ctx, array);
                     }
-                }, 1);
+                });
             }
             return this;
         };

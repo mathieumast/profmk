@@ -1,7 +1,7 @@
 {
   "name": "profmk",
   "description": "Compact promise pattern implementation and more.",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "author": "Mathieu MAST",
   "license": "MIT",
   "repository": {
