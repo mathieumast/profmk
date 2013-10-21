@@ -1,6 +1,213 @@
-var profmk = require("../profmk");
-var expect = require("chai").expect;
-var assert = require("chai").assert;
+var profmk = require("./profmk");
+var expect = require("./ext/chai").expect;
+var assert = require("./ext/chai").assert;
+
+describe("is", function() {
+
+    it("isObject", function() {
+        var f = profmk.isObject;
+        expect(f(true)).to.be.false;
+        expect(f(false)).to.be.false;
+        expect(f(10)).to.be.false;
+        expect(f("foo")).to.be.false;
+        expect(f("true")).to.be.false;
+        expect(f("false")).to.be.false;
+        expect(f("10")).to.be.false;
+        expect(f({a: 1})).to.be.true;
+        expect(f(arguments)).to.be.true;
+        expect(f([1, 2, 3])).to.be.true;
+        expect(f(function() {
+        })).to.be.true;
+        expect(f(new Date())).to.be.true;
+        expect(f(/./)).to.be.true;
+        expect(f(null)).to.be.false;
+        expect(f(void 0)).to.be.false;
+    });
+
+    it("isUndefined", function() {
+        var f = profmk.isUndefined;
+        expect(f(true)).to.be.false;
+        expect(f(false)).to.be.false;
+        expect(f(10)).to.be.false;
+        expect(f("foo")).to.be.false;
+        expect(f("true")).to.be.false;
+        expect(f("false")).to.be.false;
+        expect(f("10")).to.be.false;
+        expect(f({a: 1})).to.be.false;
+        expect(f(arguments)).to.be.false;
+        expect(f([1, 2, 3])).to.be.false;
+        expect(f(function() {
+        })).to.be.false;
+        expect(f(new Date())).to.be.false;
+        expect(f(/./)).to.be.false;
+        expect(f(null)).to.be.false;
+        expect(f(void 0)).to.be.true;
+    });
+
+    it("isNull", function() {
+        var f = profmk.isNull;
+        expect(f(true)).to.be.false;
+        expect(f(false)).to.be.false;
+        expect(f(10)).to.be.false;
+        expect(f("foo")).to.be.false;
+        expect(f("true")).to.be.false;
+        expect(f("false")).to.be.false;
+        expect(f("10")).to.be.false;
+        expect(f({a: 1})).to.be.false;
+        expect(f(arguments)).to.be.false;
+        expect(f([1, 2, 3])).to.be.false;
+        expect(f(function() {
+        })).to.be.false;
+        expect(f(new Date())).to.be.false;
+        expect(f(/./)).to.be.false;
+        expect(f(null)).to.be.true;
+        expect(f(void 0)).to.be.false;
+    });
+
+    it("isArray", function() {
+        var f = profmk.isArray;
+        expect(f(true)).to.be.false;
+        expect(f(false)).to.be.false;
+        expect(f(10)).to.be.false;
+        expect(f("foo")).to.be.false;
+        expect(f("true")).to.be.false;
+        expect(f("false")).to.be.false;
+        expect(f("10")).to.be.false;
+        expect(f({a: 1})).to.be.false;
+        expect(f(arguments)).to.be.false;
+        expect(f([1, 2, 3])).to.be.true;
+        expect(f(function() {
+        })).to.be.false;
+        expect(f(new Date())).to.be.false;
+        expect(f(/./)).to.be.false;
+        expect(f(null)).to.be.false;
+        expect(f(void 0)).to.be.false;
+    });
+
+    it("isFunction", function() {
+        var f = profmk.isFunction;
+        expect(f(true)).to.be.false;
+        expect(f(false)).to.be.false;
+        expect(f(10)).to.be.false;
+        expect(f("foo")).to.be.false;
+        expect(f("true")).to.be.false;
+        expect(f("false")).to.be.false;
+        expect(f("10")).to.be.false;
+        expect(f({a: 1})).to.be.false;
+        expect(f(arguments)).to.be.false;
+        expect(f([1, 2, 3])).to.be.false;
+        expect(f(function() {
+        })).to.be.true;
+        expect(f(new Date())).to.be.false;
+        expect(f(/./)).to.be.false;
+        expect(f(null)).to.be.false;
+        expect(f(void 0)).to.be.false;
+    });
+
+    it("isString", function() {
+        var f = profmk.isString;
+        expect(f(true)).to.be.false;
+        expect(f(false)).to.be.false;
+        expect(f(10)).to.be.false;
+        expect(f("foo")).to.be.true;
+        expect(f("true")).to.be.true;
+        expect(f("false")).to.be.true;
+        expect(f("10")).to.be.true;
+        expect(f({a: 1})).to.be.false;
+        expect(f(arguments)).to.be.false;
+        expect(f([1, 2, 3])).to.be.false;
+        expect(f(function() {
+        })).to.be.false;
+        expect(f(new Date())).to.be.false;
+        expect(f(/./)).to.be.false;
+        expect(f(null)).to.be.false;
+        expect(f(void 0)).to.be.false;
+    });
+
+    it("isBoolean", function() {
+        var f = profmk.isBoolean;
+        expect(f(true)).to.be.true;
+        expect(f(false)).to.be.true;
+        expect(f(10)).to.be.false;
+        expect(f("foo")).to.be.false;
+        expect(f("true")).to.be.false;
+        expect(f("false")).to.be.false;
+        expect(f("10")).to.be.false;
+        expect(f({a: 1})).to.be.false;
+        expect(f(arguments)).to.be.false;
+        expect(f([1, 2, 3])).to.be.false;
+        expect(f(function() {
+        })).to.be.false;
+        expect(f(new Date())).to.be.false;
+        expect(f(/./)).to.be.false;
+        expect(f(null)).to.be.false;
+        expect(f(void 0)).to.be.false;
+    });
+
+    it("isNumber", function() {
+        var f = profmk.isNumber;
+        expect(f(true)).to.be.false;
+        expect(f(false)).to.be.false;
+        expect(f(10)).to.be.true;
+        expect(f("foo")).to.be.false;
+        expect(f("true")).to.be.false;
+        expect(f("false")).to.be.false;
+        expect(f("10")).to.be.false;
+        expect(f({a: 1})).to.be.false;
+        expect(f(arguments)).to.be.false;
+        expect(f([1, 2, 3])).to.be.false;
+        expect(f(function() {
+        })).to.be.false;
+        expect(f(new Date())).to.be.false;
+        expect(f(/./)).to.be.false;
+        expect(f(null)).to.be.false;
+        expect(f(void 0)).to.be.false;
+    });
+
+    it("isDate", function() {
+        var f = profmk.isDate;
+        expect(f(true)).to.be.false;
+        expect(f(false)).to.be.false;
+        expect(f(10)).to.be.false;
+        expect(f("foo")).to.be.false;
+        expect(f("true")).to.be.false;
+        expect(f("false")).to.be.false;
+        expect(f("10")).to.be.false;
+        expect(f({a: 1})).to.be.false;
+        expect(f(arguments)).to.be.false;
+        expect(f([1, 2, 3])).to.be.false;
+        expect(f(function() {
+        })).to.be.false;
+        expect(f(function() {
+        })).to.be.false;
+        expect(f(new Date())).to.be.true;
+        expect(f(/./)).to.be.false;
+        expect(f(null)).to.be.false;
+        expect(f(void 0)).to.be.false;
+    });
+
+    it("isRegExp", function() {
+        var f = profmk.isRegExp;
+        expect(f(true)).to.be.false;
+        expect(f(false)).to.be.false;
+        expect(f(10)).to.be.false;
+        expect(f("foo")).to.be.false;
+        expect(f("true")).to.be.false;
+        expect(f("false")).to.be.false;
+        expect(f("10")).to.be.false;
+        expect(f({a: 1})).to.be.false;
+        expect(f(arguments)).to.be.false;
+        expect(f([1, 2, 3])).to.be.false;
+        expect(f(function() {
+        })).to.be.false;
+        expect(f(new Date())).to.be.false;
+        expect(f(/./)).to.be.true;
+        expect(f(null)).to.be.false;
+        expect(f(void 0)).to.be.false;
+    });
+    
+});
+
 
 describe("inherit with extend", function() {
 
@@ -42,7 +249,7 @@ describe("future", function() {
             expect(obj).to.equal("done");
             expect(progress).to.equal(3);
             done();
-        }, function(obj) {
+        }, function() {
             assert(false, "must not be called!");
         }, function(obj) {
             expect(obj).to.equal("progress");
@@ -58,7 +265,7 @@ describe("future", function() {
     it("progress & fail", function(done) {
         var future = profmk.future();
         var progress = 0;
-        future.then(function(obj) {
+        future.then(function() {
             assert(false, "must not be called!");
         }, function(obj) {
             expect(obj).to.equal("fail");
@@ -78,11 +285,11 @@ describe("future", function() {
     it("done & !progress & !fail", function(done) {
         var future = profmk.future();
         var promise = future.promise();
-        promise.then(function(obj) {
+        promise.then(function() {
             setTimeout(done, 100);
-        }, function(obj) {
+        }, function() {
             assert(false, "must not be called!");
-        }, function(obj) {
+        }, function() {
             assert(false, "must not be called!");
         });
 
@@ -94,11 +301,11 @@ describe("future", function() {
     it("fail & !progress & !done", function(done) {
         var future = profmk.future();
         var promise = future.promise();
-        promise.then(function(obj) {
+        promise.then(function() {
             assert(false, "must not be called!");
-        }, function(obj) {
+        }, function() {
             setTimeout(done, 100);
-        }, function(obj) {
+        }, function() {
             assert(false, "must not be called!");
         });
 
@@ -118,7 +325,7 @@ describe("promise", function() {
             expect(obj).to.equal("done");
             expect(progress).to.equal(3);
             done();
-        }, function(obj) {
+        }, function() {
             assert(false, "must not be called!");
         }, function(obj) {
             expect(obj).to.equal("progress");
@@ -135,7 +342,7 @@ describe("promise", function() {
         var future = profmk.future();
         var promise = future.promise();
         var progress = 0;
-        promise.then(function(obj) {
+        promise.then(function() {
             assert(false, "must not be called!");
         }, function(obj) {
             expect(obj).to.equal("fail");
@@ -156,31 +363,55 @@ describe("promise", function() {
 
 describe("when", function() {
 
-    it("progress & done", function(done) {
+    it("progress & done 1", function(done) {
         var future1 = profmk.future();
         var future2 = profmk.future();
         var future3 = profmk.future();
-        var when = profmk.when(future1, future2, future3, "string", 3, null, [ 1, 2, 3 ], {
-            a : 1,
-            b : 2
+        var when = profmk.when(future1, future2, future3, "string", 3, null, [1, 2, 3], {
+            a: 1,
+            b: 2
         });
         var progress = 0;
         when.then(function() {
-            expect(profmk.slice(arguments)).to.deep.equal([ "done1", "done2", "done3", "string", 3, null, [ 1, 2, 3 ], {
-                a : 1,
-                b : 2
-            } ]);
+            expect(profmk.slice(arguments)).to.deep.equal(["done1", "done2", "done3", "string", 3, null, [1, 2, 3], {
+                    a: 1,
+                    b: 2
+                }]);
             expect(progress).to.equal(7);
             done();
-        }, function(obj) {
+        }, function() {
             assert(false, "must not be called!");
-        }, function(obj) {
+        }, function() {
             progress++;
         });
 
         future1.notifyDone("done1");
         future2.notifyDone("done2");
         future3.notifyDone("done3");
+    });
+
+    it("progress & done 2", function(done) {
+        var f1 = function() {
+            return 1;
+        };
+        var f2 = function() {
+            return 2;
+        };
+        var f3 = function() {
+            return 3;
+        };
+
+        var when = profmk.when(f1, f2, f3);
+        var progress = 0;
+        when.then(function() {
+            expect(profmk.slice(arguments)).to.deep.equal([1, 2, 3]);
+            expect(progress).to.equal(2);
+            done();
+        }, function() {
+            assert(false, "must not be called!");
+        }, function() {
+            progress++;
+        });
     });
 
 });
@@ -192,9 +423,9 @@ describe("wait", function() {
         when.then(function(obj) {
             expect(obj).to.equal(200);
             done();
-        }, function(obj) {
+        }, function() {
             assert(false, "must not be called!");
-        }, function(obj) {
+        }, function() {
             assert(false, "must not be called!");
         });
     });
@@ -203,12 +434,12 @@ describe("wait", function() {
         var when = profmk.wait(200, "string", 3);
         var progress = 0;
         when.then(function() {
-            expect(profmk.slice(arguments)).to.deep.equal([ 200, "string", 3 ]);
+            expect(profmk.slice(arguments)).to.deep.equal([200, "string", 3]);
             expect(progress).to.equal(2);
             done();
-        }, function(obj) {
+        }, function() {
             assert(false, "failed must be called!");
-        }, function(obj) {
+        }, function() {
             progress++;
         });
     });
@@ -221,12 +452,12 @@ describe("timeout", function() {
         var when = profmk.timeout(200, "string", 3, profmk.wait(100));
         var progress = 0;
         when.then(function() {
-            expect(profmk.slice(arguments)).to.deep.equal([ 200, "string", 3, 100 ]);
+            expect(profmk.slice(arguments)).to.deep.equal([200, "string", 3, 100]);
             expect(progress).to.equal(3);
             done();
-        }, function(obj) {
+        }, function() {
             assert(false, "failed must be called!");
-        }, function(obj) {
+        }, function() {
             progress++;
         });
     });
@@ -234,12 +465,12 @@ describe("timeout", function() {
     it("fail", function(done) {
         var when = profmk.timeout(200, profmk.wait(400));
         var progress = 0;
-        when.then(function(obj) {
+        when.then(function() {
             assert(false, "must not be called!");
         }, function(obj) {
             expect(obj).to.equal("Timeout error");
             done();
-        }, function(obj) {
+        }, function() {
             progress++;
         });
     });

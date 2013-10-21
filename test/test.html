@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="ext/mocha.css" />
+        <script src="ext/require.js"></script>
+        <script>
+            onload = function() {
+                require(["ext/mocha", "ext/chai"], function() {
+                    mocha.setup("bdd");
+                    mocha.globals(["*"]);
+                    require(["profmk", "test"], function() {
+                        mocha.run();
+                    });
+                });
+            }
+        </script>
+    </head>
+    <body>
+        <div id="mocha"></div>
+    </body>
+</html>
