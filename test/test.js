@@ -205,9 +205,8 @@ describe("is", function() {
         expect(f(null)).to.be.false;
         expect(f(void 0)).to.be.false;
     });
-    
-});
 
+});
 
 describe("inherit with extend", function() {
 
@@ -238,6 +237,83 @@ describe("inherit with extend", function() {
         expect(parent.info()).to.equal("9 titi");
     });
 
+});
+
+describe("mediator", function() {
+
+    it("publish/subscribe", function(done) {
+        var mediator = profmk.mediator();
+        var nb1 = 0;
+        var nb2 = 0;
+        var str = "";
+        mediator.subscribe("channel 1", function(obj1, obj2) {
+            nb1++;
+            str += " 1 " + obj1 + obj2;
+        });
+        mediator.subscribe("channel 2", function(obj1, obj2) {
+            nb2++;
+            str += " 2 " + obj1 + obj2;
+        });
+        mediator.subscribe("channel 2", function(obj1, obj2) {
+            nb2++;
+            str += " 3 " + obj1 + obj2;
+            return false;
+        });
+        mediator.subscribe("channel 2", function() {
+            assert(false, "must not be called!");
+        });
+        mediator.subscribe("channel 2", function(obj1, obj2) {
+            nb2++;
+            str += " 4 " + obj1 + obj2;
+        }, 1);
+        mediator.subscribe("channel 3", function(obj1, obj2, obj3) {
+            expect(nb1).to.equal(1);
+            expect(nb2).to.equal(6);
+            expect(str).to.equal(" 4 ab 2 ab 3 ab 1 cd 4 ef 2 ef 3 ef");
+            expect(obj1).to.equal(1);
+            expect(obj2).to.equal(2);
+            expect(obj3).to.equal(3);
+            done();
+        });
+        mediator.publish("channel 2", "a", "b");
+        mediator.publish("channel 1", "c", "d");
+        mediator.publish("channel 2", "e", "f");
+        mediator.publish("channel 3", 1, 2, 3);
+    });
+
+    it("publish/unsubscribe/subscribe", function(done) {
+        var mediator = profmk.mediator();
+        var nb1 = 0;
+        var nb2 = 0;
+        
+        mediator.subscribe("channel 1", function() {
+            nb1++;
+        });
+        mediator.subscribe("channel 2", function() {
+            nb2++;
+        });        
+        var f = function() {
+            assert(false, "must not be called!");
+        };
+        mediator.subscribe("channel 2", f);
+        mediator.subscribe("channel 3", function() {
+            assert(false, "must not be called!");
+        });
+        mediator.subscribe("channel 3", function() {
+            assert(false, "must not be called!");
+        });
+        mediator.subscribe("channel 4", function() {
+            expect(nb1).to.equal(1);
+            expect(nb2).to.equal(1);
+            done();
+        });
+        mediator.publish("channel 1");
+        mediator.unsubscribe("channel 2", f);
+        mediator.publish("channel 2");
+        mediator.unsubscribe("channel 3");
+        mediator.publish("channel 3");
+        mediator.publish("channel 4");
+    });
 });
 
 describe("future", function() {

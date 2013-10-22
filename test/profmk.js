@@ -1,7 +1,7 @@
 /*
  * Compact promise pattern implementation and more. (https://github.com/mathieumast/profmk)
  * 
- * Version : 0.6.0
+ * Version : 0.7.0
  * 
  * Copyright (c) 2013, Mathieu MAST
  * 
@@ -9,12 +9,7 @@
  */
 (function() {
     'use strict';
-
     var profmk = {};
-
-    profmk.errors = {
-        timeout: 'Timeout error'
-    };
 
     /*
      * Slice array or arguments.
@@ -61,7 +56,7 @@
      * Returns true if value is undefined.
      */
     profmk.isUndefined = function(value) {
-        return typeof value == 'undefined';
+        return !value ? typeof value == 'undefined' : false;
     };
 
     /*
@@ -75,17 +70,24 @@
      * Returns true if value is an object.
      */
     profmk.isObject = function(value) {
-        return value === Object(value);
+        return !value ? false : value === Object(value);
     };
 
     /*
-     * Function isArray, isObject, isFunction, isString, isBoolean, isNumber, isDate, isRegExp.
+     * Returns true if value is an boolean.
      */
-    var typesElems = ['Array', 'Function', 'String', 'Boolean', 'Number', 'Date', 'RegExp'];
+    profmk.isBoolean = function(value) {
+        return (value === true || value === false || Object.prototype.toString.call(value) == '[object Boolean]');
+    };
+
+    /*
+     * Function isArray, isObject, isFunction, isString, isNumber, isDate, isRegExp.
+     */
+    var typesElems = ['Array', 'Function', 'String', 'Number', 'Date', 'RegExp'];
     for (var i = 0; i < typesElems.length; i++) {
         profmk.invoke(profmk, function(type) {
             this['is' + type] = function(value) {
-                return value == null ? false : Object.prototype.toString.call(value) == '[object ' + type + ']';
+                return !value ? false : Object.prototype.toString.call(value) == '[object ' + type + ']';
             };
         }, typesElems[i]);
     }
@@ -104,84 +106,187 @@
     /*
      * Create a new instance of function and arguments in array.
      */
-    profmk.instantiate = function(func, args) {
-        var obj, i = 0, l = args.length, q = [];
-        if (profmk.isArray(args)) {
-            switch (l) {
-                case 0:
-                    obj = new func();
-                    break;
-                case 1:
-                    obj = new func(args[0]);
-                    break;
-                case 2:
-                    obj = new func(args[0], args[1]);
-                    break;
-                case 3:
-                    obj = new func(args[0], args[1], args[2]);
-                    break;
-                case 4:
-                    obj = new func(args[0], args[1], args[2], args[3]);
-                    break;
-                default:
-                    for (; i < l; i++)
-                        q.push('args[' + i + ']');
-                    obj = eval('new func(' + q.join(',') + ');');
+    profmk.instantiate = function(func, array) {
+        var i = 0, l = array.length, q = [];
+        switch (l) {
+            case 0:
+                return new func();
+            case 1:
+                return new func(array[0]);
+            case 2:
+                return new func(array[0], array[1]);
+            case 3:
+                return new func(array[0], array[1], array[2]);
+            case 4:
+                return new func(array[0], array[1], array[2], array[3]);
+            default:
+                for (; i < l; i++)
+                    q.push('array[' + i + ']');
+                return eval('new func(' + q.join(',') + ');');
+        }
+    };
+
+    /*
+     * Subcription implementation.
+     */
+    var _Subscription = function() {
+        var _subscribers = {};
+        /*
+         * Add subscriber.
+         */
+        this.subscribe = function(channel, callback, priority, context) {
+            if (!_subscribers[channel]) {
+                _subscribers[channel] = {callbacks: [], priorities: [], contexts: []};
             }
-            return obj;
-        } else
-            return new func();
+            if (profmk.isFunction(callback)) {
+                if (!profmk.isNumber(priority))
+                    priority = 10;
+                if (!context)
+                    context = this;
+                var _priorities = _subscribers[channel].priorities, _callbacks = _subscribers[channel].callbacks, _contexts = _subscribers[channel].contexts, i = _priorities.length - 1, lastpriority = 0;
+                for (; i >= 0; i--) {
+                    lastpriority = _priorities[i];
+                    if (priority < lastpriority) {
+                        _callbacks.splice(i + 1, 0, callback);
+                        _priorities.splice(i + 1, 0, priority);
+                        _contexts.splice(i + 1, 0, context);
+                        break;
+                    }
+                }
+                if (priority < lastpriority) {
+                    _callbacks.unshift(callback);
+                    _priorities.unshift(priority);
+                    _contexts.unshift(context);
+                } else {
+                    _callbacks.push(callback);
+                    _priorities.push(priority);
+                    _contexts.push(context);
+                }
+            }
+            return this;
+        };
+        /*
+         * Remove subscriber.
+         */
+        this.unsubscribe = function(channel, callback) {
+            if (!_subscribers[channel])
+                return this;
+            if (!callback)
+                _subscribers[channel] = null;
+            else {
+                var _priorities = _subscribers[channel].priorities, _callbacks = _subscribers[channel].callbacks, _contexts = _subscribers[channel].contexts, i = _priorities.length - 1;
+                for (; i >= 0; i--) {
+                    if (_callbacks[i] === callback) {
+                        _callbacks.splice(i, 1);
+                        _priorities.splice(i, 1);
+                        _contexts.splice(i, 1);
+                    }
+                }
+            }
+            return this;
+        };
+        /*
+         * Return copy of callback subscribers for the channel.
+         */
+        this.callbacks = function(channel) {
+            if (!_subscribers[channel])
+                return [];
+            return profmk.slice(_subscribers[channel].callbacks);
+        };
+        /*
+         * Return copy of context subscribers for the channel.
+         */
+        this.contexts = function(channel) {
+            if (!_subscribers[channel])
+                return [];
+            return profmk.slice(_subscribers[channel].contexts);
+        };
+    };
+
+    /*
+     * Publication implementation.
+     */
+    var _Publication = function(subscription) {
+        /*
+         * Publish data in array.
+         */
+        this.publishArray = function(channel, array) {
+            profmk.async(this, function() {
+                var _callbacks = subscription.callbacks(channel), _contexts = subscription.contexts(channel), i = 0, l = _callbacks.length;
+                for (; i < l; i++)
+                    if (_callbacks[i].apply(_contexts[i], array) === false)
+                        return false;
+                return true;
+            });
+        };
+    };
+
+    /*
+     * Mediator implementation.
+     */
+    var _Mediator = function() {
+        this._subscription = new _Subscription();
+        this._publication = new _Publication(this._subscription);
+    };
+    /*
+     * Add subscriber.
+     */
+    _Mediator.prototype.subscribe = function(channel, callback, priority, context) {
+        this._subscription.subscribe(channel, callback, priority, context);
+    };
+    /*
+     * Remove subscriber.
+     */
+    _Mediator.prototype.unsubscribe = function(channel, callback) {
+        this._subscription.unsubscribe(channel, callback);
+    };
+    /*
+     * Publish data in arguments.
+     */
+    _Mediator.prototype.publish = function(channel) {
+        return this._publication.publishArray(channel, profmk.slice(arguments, 1));
+    };
+    /*
+     * Publish data in array.
+     */
+    _Mediator.prototype.publishArray = function(channel, array) {
+        return this._publication.publishArray(channel, array);
+    };
+    /*
+     * Get a new Mediator object.
+     */
+    profmk.mediator = function() {
+        return new _Mediator();
     };
 
     /*
      * Promise implementation.
      */
     var _Promise = function() {
-        var _callbacks = {
-            done: [],
-            fail: [],
-            progress: []
-        };
-        /*
-         * Return copy of callbacks.
-         */
-        this.callbacks = function() {
-            return {
-                done: profmk.slice(_callbacks.done),
-                fail: profmk.slice(_callbacks.fail),
-                progress: profmk.slice(_callbacks.progress)
-            };
-        };
-        /*
-         * Add handlers to be called when the Promise object is done, failed, or still in progress.
-         */
-        this.then = function(done, fail, progress) {
-            if (profmk.isFunction(done))
-                _callbacks['done'].push(done);
-            if (profmk.isFunction(fail))
-                _callbacks['fail'].push(fail);
-            if (profmk.isFunction(progress))
-                _callbacks['progress'].push(progress);
-            return this;
-        };
+        this._subscription = new _Subscription();
+    };
+    /*
+     * Add handlers to be called when the Promise object is done, failed, or still in progress.
+     */
+    _Promise.prototype.then = function(done, fail, progress, context) {
+        this._subscription.subscribe('done', done, context);
+        this._subscription.subscribe('fail', fail, context);
+        this._subscription.subscribe('progress', progress, context);
+        return this;
     };
 
     /*
      * Future implementation.
      */
     var _Future = function() {
-        var _step = 'progress', _promise = new _Promise(), _self = this;
+        var _step = 'progress', _promise = new _Promise(), _publication = new _Publication(_promise._subscription);
         this.context = this;
         this._notify = function(type, array) {
             if (_step === 'progress') {
                 _step = type;
-                profmk.async(_self, function() {
-                    var _callbacks = _promise.callbacks(), i = 0, l = _callbacks[type].length;
-                    for (; i < l; i++)
-                        _callbacks[type][i].apply(_self.context, array);
-                });
+                _publication.publishArray(type, array);
             }
-            return _self;
+            return this;
         };
         /*
          * Return promise instance.
@@ -215,7 +320,7 @@
         return this._notify('progress', profmk.slice(arguments));
     };
     /*
-     * Get a new future object.
+     * Get a new Future object.
      */
     profmk.future = function() {
         return new _Future();
@@ -255,7 +360,7 @@
     };
     profmk.extend(_When.prototype, _Future.prototype);
     /*
-     * Get a new when promise object.
+     * Get a new When object.
      */
     profmk.when = function() {
         var when = new _When(profmk.slice(arguments));
@@ -263,7 +368,7 @@
     };
 
     /*
-     * Get a new wait promise object.
+     * Get a new Wait object.
      */
     profmk.wait = function(ms) {
         var future = profmk.future(), objs = [future].concat(profmk.slice(arguments, 1)), when = new _When(objs);
@@ -274,12 +379,12 @@
     };
 
     /*
-     * Get a new timeout promise object.
+     * Get a new Timeout object.
      */
     profmk.timeout = function(ms) {
         var when = new _When([ms].concat(profmk.slice(arguments, 1)));
         setTimeout(function() {
-            when.notifyFail(profmk.errors.timeout);
+            when.notifyFail('Timeout error');
         }, ms);
         return when.promise();
     };

@@ -1,5 +1,6 @@
 ;(function(){
 
+
 // CommonJS require()
 
 function require(p){
@@ -31,11 +32,11 @@ require.register = function (path, fn){
 require.relative = function (parent) {
     return function(p){
       if ('.' != p.charAt(0)) return require(p);
-
+      
       var path = parent.split('/')
         , segs = p.split('/');
       path.pop();
-
+      
       for (var i = 0; i < segs.length; i++) {
         var seg = segs[i];
         if ('..' == seg) path.pop();
@@ -51,30 +52,29 @@ require.register("browser/debug.js", function(module, exports, require){
 
 module.exports = function(type){
   return function(){
+    
   }
 };
-
 }); // module: browser/debug.js
 
 require.register("browser/diff.js", function(module, exports, require){
-/* See LICENSE file for terms of use */
+/* See license.txt for terms of usage */
 
 /*
  * Text diff implementation.
- *
+ * 
  * This library supports the following APIS:
  * JsDiff.diffChars: Character by character diff
  * JsDiff.diffWords: Word (as defined by \b regex) diff which ignores whitespace
  * JsDiff.diffLines: Line based diff
- *
+ * 
  * JsDiff.diffCss: Diff targeted at CSS content
- *
+ * 
  * These methods are based on the implementation proposed in
  * "An O(ND) Difference Algorithm and its Variations" (Myers, 1986).
  * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
  */
 var JsDiff = (function() {
-  /*jshint maxparams: 5*/
   function clonePath(path) {
     return { newPos: path.newPos, components: path.components.slice(0) };
   }
@@ -89,21 +89,22 @@ var JsDiff = (function() {
   }
   function escapeHTML(s) {
     var n = s;
-    n = n.replace(/&/g, '&amp;');
-    n = n.replace(/</g, '&lt;');
-    n = n.replace(/>/g, '&gt;');
-    n = n.replace(/"/g, '&quot;');
+    n = n.replace(/&/g, "&amp;");
+    n = n.replace(/</g, "&lt;");
+    n = n.replace(/>/g, "&gt;");
+    n = n.replace(/"/g, "&quot;");
 
     return n;
   }
 
-  var Diff = function(ignoreWhitespace) {
+
+  var fbDiff = function(ignoreWhitespace) {
     this.ignoreWhitespace = ignoreWhitespace;
   };
-  Diff.prototype = {
+  fbDiff.prototype = {
       diff: function(oldString, newString) {
         // Handle the identity case (this is due to unrolling editLength == 0
-        if (newString === oldString) {
+        if (newString == oldString) {
           return [{ value: newString }];
         }
         if (!newString) {
@@ -186,7 +187,7 @@ var JsDiff = (function() {
         while (newPos+1 < newLen && oldPos+1 < oldLen && this.equals(newString[newPos+1], oldString[oldPos+1])) {
           newPos++;
           oldPos++;
-
+          
           this.pushComponent(basePath.components, newString[newPos], undefined, undefined);
         }
         basePath.newPos = newPos;
@@ -198,7 +199,7 @@ var JsDiff = (function() {
         if (this.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right)) {
           return true;
         } else {
-          return left === right;
+          return left == right;
         }
       },
       join: function(left, right) {
@@ -208,31 +209,27 @@ var JsDiff = (function() {
         return value;
       }
   };
-
-  var CharDiff = new Diff();
-
-  var WordDiff = new Diff(true);
-  var WordWithSpaceDiff = new Diff();
-  WordDiff.tokenize = WordWithSpaceDiff.tokenize = function(value) {
+  
+  var CharDiff = new fbDiff();
+  
+  var WordDiff = new fbDiff(true);
+  WordDiff.tokenize = function(value) {
     return removeEmpty(value.split(/(\s+|\b)/));
   };
-
-  var CssDiff = new Diff(true);
+  
+  var CssDiff = new fbDiff(true);
   CssDiff.tokenize = function(value) {
     return removeEmpty(value.split(/([{}:;,]|\s+)/));
   };
-
-  var LineDiff = new Diff();
+  
+  var LineDiff = new fbDiff();
   LineDiff.tokenize = function(value) {
     return value.split(/^/m);
   };
-
+  
   return {
-    Diff: Diff,
-
     diffChars: function(oldStr, newStr) { return CharDiff.diff(oldStr, newStr); },
     diffWords: function(oldStr, newStr) { return WordDiff.diff(oldStr, newStr); },
-    diffWordsWithSpace: function(oldStr, newStr) { return WordWithSpaceDiff.diff(oldStr, newStr); },
     diffLines: function(oldStr, newStr) { return LineDiff.diff(oldStr, newStr); },
 
     diffCss: function(oldStr, newStr) { return CssDiff.diff(oldStr, newStr); },
@@ -240,16 +237,16 @@ var JsDiff = (function() {
     createPatch: function(fileName, oldStr, newStr, oldHeader, newHeader) {
       var ret = [];
 
-      ret.push('Index: ' + fileName);
-      ret.push('===================================================================');
-      ret.push('--- ' + fileName + (typeof oldHeader === 'undefined' ? '' : '\t' + oldHeader));
-      ret.push('+++ ' + fileName + (typeof newHeader === 'undefined' ? '' : '\t' + newHeader));
+      ret.push("Index: " + fileName);
+      ret.push("===================================================================");
+      ret.push("--- " + fileName + (typeof oldHeader === "undefined" ? "" : "\t" + oldHeader));
+      ret.push("+++ " + fileName + (typeof newHeader === "undefined" ? "" : "\t" + newHeader));
 
       var diff = LineDiff.diff(oldStr, newStr);
       if (!diff[diff.length-1].value) {
         diff.pop();   // Remove trailing newline add
       }
-      diff.push({value: '', lines: []});   // Append an empty value to make cleanup easier
+      diff.push({value: "", lines: []});   // Append an empty value to make cleanup easier
 
       function contextLines(lines) {
         return lines.map(function(entry) { return ' ' + entry; });
@@ -257,7 +254,7 @@ var JsDiff = (function() {
       function eofNL(curRange, i, current) {
         var last = diff[diff.length-2],
             isLast = i === diff.length-2,
-            isLastOfType = i === diff.length-3 && (current.added !== last.added || current.removed !== last.removed);
+            isLastOfType = i === diff.length-3 && (current.added === !last.added || current.removed === !last.removed);
 
         // Figure out if this is the last line for the given file and missing NL
         if (!/\n$/.test(current.value) && (isLast || isLastOfType)) {
@@ -269,7 +266,7 @@ var JsDiff = (function() {
           oldLine = 1, newLine = 1;
       for (var i = 0; i < diff.length; i++) {
         var current = diff[i],
-            lines = current.lines || current.value.replace(/\n$/, '').split('\n');
+            lines = current.lines || current.value.replace(/\n$/, "").split("\n");
         current.lines = lines;
 
         if (current.added || current.removed) {
@@ -277,14 +274,14 @@ var JsDiff = (function() {
             var prev = diff[i-1];
             oldRangeStart = oldLine;
             newRangeStart = newLine;
-
+            
             if (prev) {
               curRange = contextLines(prev.lines.slice(-4));
               oldRangeStart -= curRange.length;
               newRangeStart -= curRange.length;
             }
           }
-          curRange.push.apply(curRange, lines.map(function(entry) { return (current.added?'+':'-') + entry; }));
+          curRange.push.apply(curRange, lines.map(function(entry) { return (current.added?"+":"-") + entry; }));
           eofNL(curRange, i, current);
 
           if (current.added) {
@@ -302,9 +299,9 @@ var JsDiff = (function() {
               // end the range and output
               var contextSize = Math.min(lines.length, 4);
               ret.push(
-                  '@@ -' + oldRangeStart + ',' + (oldLine-oldRangeStart+contextSize)
-                  + ' +' + newRangeStart + ',' + (newLine-newRangeStart+contextSize)
-                  + ' @@');
+                  "@@ -" + oldRangeStart + "," + (oldLine-oldRangeStart+contextSize)
+                  + " +" + newRangeStart + "," + (newLine-newRangeStart+contextSize)
+                  + " @@");
               ret.push.apply(ret, curRange);
               ret.push.apply(ret, contextLines(lines.slice(0, contextSize)));
               if (lines.length <= 4) {
@@ -322,93 +319,30 @@ var JsDiff = (function() {
       return ret.join('\n') + '\n';
     },
 
-    applyPatch: function(oldStr, uniDiff) {
-      var diffstr = uniDiff.split('\n');
-      var diff = [];
-      var remEOFNL = false,
-          addEOFNL = false;
-
-      for (var i = (diffstr[0][0]==='I'?4:0); i < diffstr.length; i++) {
-        if(diffstr[i][0] === '@') {
-          var meh = diffstr[i].split(/@@ -(\d+),(\d+) \+(\d+),(\d+) @@/);
-          diff.unshift({
-            start:meh[3],
-            oldlength:meh[2],
-            oldlines:[],
-            newlength:meh[4],
-            newlines:[]
-          });
-        } else if(diffstr[i][0] === '+') {
-          diff[0].newlines.push(diffstr[i].substr(1));
-        } else if(diffstr[i][0] === '-') {
-          diff[0].oldlines.push(diffstr[i].substr(1));
-        } else if(diffstr[i][0] === ' ') {
-          diff[0].newlines.push(diffstr[i].substr(1));
-          diff[0].oldlines.push(diffstr[i].substr(1));
-        } else if(diffstr[i][0] === '\\') {
-          if (diffstr[i-1][0] === '+') {
-            remEOFNL = true;
-          } else if(diffstr[i-1][0] === '-') {
-            addEOFNL = true;
-          }
-        }
-      }
-
-      var str = oldStr.split('\n');
-      for (var i = diff.length - 1; i >= 0; i--) {
-        var d = diff[i];
-        for (var j = 0; j < d.oldlength; j++) {
-          if(str[d.start-1+j] !== d.oldlines[j]) {
-            return false;
-          }
-        }
-        Array.prototype.splice.apply(str,[d.start-1,+d.oldlength].concat(d.newlines));
-      }
-
-      if (remEOFNL) {
-        while (!str[str.length-1]) {
-          str.pop();
-        }
-      } else if (addEOFNL) {
-        str.push('');
-      }
-      return str.join('\n');
-    },
-
     convertChangesToXML: function(changes){
       var ret = [];
       for ( var i = 0; i < changes.length; i++) {
         var change = changes[i];
         if (change.added) {
-          ret.push('<ins>');
+          ret.push("<ins>");
         } else if (change.removed) {
-          ret.push('<del>');
+          ret.push("<del>");
         }
 
         ret.push(escapeHTML(change.value));
 
         if (change.added) {
-          ret.push('</ins>');
+          ret.push("</ins>");
         } else if (change.removed) {
-          ret.push('</del>');
+          ret.push("</del>");
         }
       }
-      return ret.join('');
-    },
-
-    // See: http://code.google.com/p/google-diff-match-patch/wiki/API
-    convertChangesToDMP: function(changes){
-      var ret = [], change;
-      for ( var i = 0; i < changes.length; i++) {
-        change = changes[i];
-        ret.push([(change.added ? 1 : change.removed ? -1 : 0), change.value]);
-      }
-      return ret;
+      return ret.join("");
     }
   };
 })();
 
-if (typeof module !== 'undefined') {
+if (typeof module !== "undefined") {
     module.exports = JsDiff;
 }
 
@@ -739,14 +673,8 @@ exports.isatty = function(){
 };
 
 exports.getWindowSize = function(){
-  if ('innerHeight' in global) {
-    return [global.innerHeight, global.innerWidth];
-  } else {
-    // In a Web Worker, the DOM Window is not available.
-    return [640, 480];
-  }
+  return [window.innerHeight, window.innerWidth];
 };
-
 }); // module: browser/tty.js
 
 require.register("context.js", function(module, exports, require){
@@ -877,6 +805,7 @@ Hook.prototype.error = function(err){
   this._error = err;
 };
 
+
 }); // module: hook.js
 
 require.register("interfaces/bdd.js", function(module, exports, require){
@@ -886,12 +815,11 @@ require.register("interfaces/bdd.js", function(module, exports, require){
  */
 
 var Suite = require('../suite')
-  , Test = require('../test')
-  , utils = require('../utils');
+  , Test = require('../test');
 
 /**
  * BDD-style interface:
- *
+ * 
  *      describe('Array', function(){
  *        describe('#indexOf()', function(){
  *          it('should return -1 when not present', function(){
@@ -903,7 +831,7 @@ var Suite = require('../suite')
  *          });
  *        });
  *      });
- *
+ * 
  */
 
 module.exports = function(suite){
@@ -948,7 +876,7 @@ module.exports = function(suite){
      * and callback `fn` containing nested suites
      * and/or tests.
      */
-
+  
     context.describe = context.context = function(title, fn){
       var suite = Suite.create(suites[0], title);
       suites.unshift(suite);
@@ -1000,8 +928,7 @@ module.exports = function(suite){
 
     context.it.only = function(title, fn){
       var test = context.it(title, fn);
-      var reString = '^' + utils.escapeRegexp(test.fullTitle()) + '$';
-      mocha.grep(new RegExp(reString));
+      mocha.grep(test.fullTitle());
     };
 
     /**
@@ -1029,19 +956,19 @@ var Suite = require('../suite')
 
 /**
  * TDD-style interface:
- *
+ * 
  *     exports.Array = {
  *       '#indexOf()': {
  *         'should return -1 when the value is not present': function(){
- *
+ *           
  *         },
  *
  *         'should return the correct index when the value is present': function(){
- *
+ *           
  *         }
  *       }
  *     };
- *
+ * 
  */
 
 module.exports = function(suite){
@@ -1079,7 +1006,6 @@ module.exports = function(suite){
     }
   }
 };
-
 }); // module: interfaces/exports.js
 
 require.register("interfaces/index.js", function(module, exports, require){
@@ -1098,38 +1024,37 @@ require.register("interfaces/qunit.js", function(module, exports, require){
  */
 
 var Suite = require('../suite')
-  , Test = require('../test')
-  , utils = require('../utils');
+  , Test = require('../test');
 
 /**
  * QUnit-style interface:
- *
+ * 
  *     suite('Array');
- *
+ *     
  *     test('#length', function(){
  *       var arr = [1,2,3];
  *       ok(arr.length == 3);
  *     });
- *
+ *     
  *     test('#indexOf()', function(){
  *       var arr = [1,2,3];
  *       ok(arr.indexOf(1) == 0);
  *       ok(arr.indexOf(2) == 1);
  *       ok(arr.indexOf(3) == 2);
  *     });
- *
+ *     
  *     suite('String');
- *
+ *     
  *     test('#length', function(){
  *       ok('foo'.length == 3);
  *     });
- *
+ * 
  */
 
 module.exports = function(suite){
   var suites = [suite];
 
-  suite.on('pre-require', function(context, file, mocha){
+  suite.on('pre-require', function(context){
 
     /**
      * Execute before running tests.
@@ -1166,21 +1091,11 @@ module.exports = function(suite){
     /**
      * Describe a "suite" with the given `title`.
      */
-
+  
     context.suite = function(title){
       if (suites.length > 1) suites.shift();
       var suite = Suite.create(suites[0], title);
       suites.unshift(suite);
-      return suite;
-    };
-
-    /**
-     * Exclusive test-case.
-     */
-
-    context.suite.only = function(title, fn){
-      var suite = context.suite(title, fn);
-      mocha.grep(suite.fullTitle());
     };
 
     /**
@@ -1190,27 +1105,7 @@ module.exports = function(suite){
      */
 
     context.test = function(title, fn){
-      var test = new Test(title, fn);
-      suites[0].addTest(test);
-      return test;
-    };
-
-    /**
-     * Exclusive test-case.
-     */
-
-    context.test.only = function(title, fn){
-      var test = context.test(title, fn);
-      var reString = '^' + utils.escapeRegexp(test.fullTitle()) + '$';
-      mocha.grep(new RegExp(reString));
-    };
-
-    /**
-     * Pending test case.
-     */
-
-    context.test.skip = function(title){
-      context.test(title);
+      suites[0].addTest(new Test(title, fn));
     };
   });
 };
@@ -1224,8 +1119,7 @@ require.register("interfaces/tdd.js", function(module, exports, require){
  */
 
 var Suite = require('../suite')
-  , Test = require('../test')
-  , utils = require('../utils');;
+  , Test = require('../test');
 
 /**
  * TDD-style interface:
@@ -1235,7 +1129,7 @@ var Suite = require('../suite')
  *          suiteSetup(function(){
  *
  *          });
- *
+ *          
  *          test('should return -1 when not present', function(){
  *
  *          });
@@ -1304,17 +1198,6 @@ module.exports = function(suite){
     };
 
     /**
-     * Pending suite.
-     */
-    context.suite.skip = function(title, fn) {
-      var suite = Suite.create(suites[0], title);
-      suite.pending = true;
-      suites.unshift(suite);
-      fn.call(suite);
-      suites.shift();
-    };
-
-    /**
      * Exclusive test-case.
      */
 
@@ -1330,10 +1213,8 @@ module.exports = function(suite){
      */
 
     context.test = function(title, fn){
-      var suite = suites[0];
-      if (suite.pending) var fn = null;
       var test = new Test(title, fn);
-      suite.addTest(test);
+      suites[0].addTest(test);
       return test;
     };
 
@@ -1343,8 +1224,7 @@ module.exports = function(suite){
 
     context.test.only = function(title, fn){
       var test = context.test(title, fn);
-      var reString = '^' + utils.escapeRegexp(test.fullTitle()) + '$';
-      mocha.grep(new RegExp(reString));
+      mocha.grep(test.fullTitle());
     };
 
     /**
@@ -1432,7 +1312,7 @@ function Mocha(options) {
   this.ui(options.ui);
   this.bail(options.bail);
   this.reporter(options.reporter);
-  if (null != options.timeout) this.timeout(options.timeout);
+  if (options.timeout) this.timeout(options.timeout);
   if (options.slow) this.slow(options.slow);
 }
 
@@ -1571,13 +1451,12 @@ Mocha.prototype.invert = function(){
 /**
  * Ignore global leaks.
  *
- * @param {Boolean} ignore
  * @return {Mocha}
  * @api public
  */
 
-Mocha.prototype.ignoreLeaks = function(ignore){
-  this.options.ignoreLeaks = !!ignore;
+Mocha.prototype.ignoreLeaks = function(){
+  this.options.ignoreLeaks = true;
   return this;
 };
 
@@ -1670,7 +1549,7 @@ Mocha.prototype.run = function(fn){
   var options = this.options;
   var runner = new exports.Runner(suite);
   var reporter = new this._reporter(runner);
-  runner.ignoreLeaks = false !== options.ignoreLeaks;
+  runner.ignoreLeaks = options.ignoreLeaks;
   runner.asyncOnly = options.asyncOnly;
   if (options.grep) runner.grep(options.grep, options.invert);
   if (options.globals) runner.globals(options.globals);
@@ -1681,6 +1560,7 @@ Mocha.prototype.run = function(fn){
 }); // module: mocha.js
 
 require.register("ms.js", function(module, exports, require){
+
 /**
  * Helpers.
  */
@@ -1689,28 +1569,19 @@ var s = 1000;
 var m = s * 60;
 var h = m * 60;
 var d = h * 24;
-var y = d * 365.25;
 
 /**
  * Parse or format the given `val`.
  *
- * Options:
- *
- *  - `long` verbose formatting [false]
- *
  * @param {String|Number} val
- * @param {Object} options
  * @return {String|Number}
  * @api public
  */
 
-module.exports = function(val, options){
-  options = options || {};
+module.exports = function(val){
   if ('string' == typeof val) return parse(val);
-  return options.long
-    ? long(val)
-    : short(val);
-};
+  return format(val);
+}
 
 /**
  * Parse the given `str` and return milliseconds.
@@ -1721,78 +1592,55 @@ module.exports = function(val, options){
  */
 
 function parse(str) {
-  var match = /^((?:\d+)?\.?\d+) *(ms|seconds?|s|minutes?|m|hours?|h|days?|d|years?|y)?$/i.exec(str);
-  if (!match) return;
-  var n = parseFloat(match[1]);
-  var type = (match[2] || 'ms').toLowerCase();
+  var m = /^((?:\d+)?\.?\d+) *(ms|seconds?|s|minutes?|m|hours?|h|days?|d|years?|y)?$/i.exec(str);
+  if (!m) return;
+  var n = parseFloat(m[1]);
+  var type = (m[2] || 'ms').toLowerCase();
   switch (type) {
     case 'years':
     case 'year':
     case 'y':
-      return n * y;
+      return n * 31557600000;
     case 'days':
     case 'day':
     case 'd':
-      return n * d;
+      return n * 86400000;
     case 'hours':
     case 'hour':
     case 'h':
-      return n * h;
+      return n * 3600000;
     case 'minutes':
     case 'minute':
     case 'm':
-      return n * m;
+      return n * 60000;
     case 'seconds':
     case 'second':
     case 's':
-      return n * s;
+      return n * 1000;
     case 'ms':
       return n;
   }
 }
 
 /**
- * Short format for `ms`.
+ * Format the given `ms`.
  *
  * @param {Number} ms
  * @return {String}
- * @api private
+ * @api public
  */
 
-function short(ms) {
-  if (ms >= d) return Math.round(ms / d) + 'd';
-  if (ms >= h) return Math.round(ms / h) + 'h';
-  if (ms >= m) return Math.round(ms / m) + 'm';
-  if (ms >= s) return Math.round(ms / s) + 's';
-  return ms + 'ms';
+function format(ms) {
+  if (ms == d) return Math.round(ms / d) + ' day';
+  if (ms > d) return Math.round(ms / d) + ' days';
+  if (ms == h) return Math.round(ms / h) + ' hour';
+  if (ms > h) return Math.round(ms / h) + ' hours';
+  if (ms == m) return Math.round(ms / m) + ' minute';
+  if (ms > m) return Math.round(ms / m) + ' minutes';
+  if (ms == s) return Math.round(ms / s) + ' second';
+  if (ms > s) return Math.round(ms / s) + ' seconds';
+  return ms + ' ms';
 }
-
-/**
- * Long format for `ms`.
- *
- * @param {Number} ms
- * @return {String}
- * @api private
- */
-
-function long(ms) {
-  return plural(ms, d, 'day')
-    || plural(ms, h, 'hour')
-    || plural(ms, m, 'minute')
-    || plural(ms, s, 'second')
-    || ms + ' ms';
-}
-
-/**
- * Pluralization helper.
- */
-
-function plural(ms, n, name) {
-  if (ms < n) return;
-  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
-  return Math.ceil(ms / n) + ' ' + name + 's';
-}
-
 }); // module: ms.js
 
 require.register("reporters/base.js", function(module, exports, require){
@@ -1862,7 +1710,7 @@ exports.colors = {
 /**
  * Default symbol map.
  */
-
+ 
 exports.symbols = {
   ok: '✓',
   err: '✖',
@@ -1959,21 +1807,19 @@ exports.list = function(failures){
       , expected = err.expected
       , escape = true;
 
-    // uncaught
-    if (err.uncaught) {
-      msg = 'Uncaught ' + msg;
-    }
-
     // explicitly show diff
-    if (err.showDiff && sameType(actual, expected)) {
+    if (err.showDiff) {
       escape = false;
-      err.actual = actual = stringify(actual);
-      err.expected = expected = stringify(expected);
+      err.actual = actual = JSON.stringify(actual, null, 2);
+      err.expected = expected = JSON.stringify(expected, null, 2);
     }
 
     // actual / expected diff
     if ('string' == typeof actual && 'string' == typeof expected) {
-      msg = errorDiff(err, 'WordsWithSpace', escape);
+      var len = Math.max(actual.length, expected.length);
+
+      if (len < 20) msg = errorDiff(err, 'Chars', escape);
+      else msg = errorDiff(err, 'Words', escape);
 
       // linenos
       var lines = msg.split('\n');
@@ -2082,38 +1928,48 @@ function Base(runner) {
  */
 
 Base.prototype.epilogue = function(){
-  var stats = this.stats;
-  var tests;
-  var fmt;
+  var stats = this.stats
+    , fmt
+    , tests;
 
   console.log();
 
-  // passes
+  function pluralize(n) {
+    return 1 == n ? 'test' : 'tests';
+  }
+
+  // failure
+  if (stats.failures) {
+    fmt = color('bright fail', '  ' + exports.symbols.err)
+      + color('fail', ' %d of %d %s failed')
+      + color('light', ':')
+
+    console.error(fmt,
+      stats.failures,
+      this.runner.total,
+      pluralize(this.runner.total));
+
+    Base.list(this.failures);
+    console.error();
+    return;
+  }
+
+  // pass
   fmt = color('bright pass', ' ')
-    + color('green', ' %d passing')
+    + color('green', ' %d %s complete')
     + color('light', ' (%s)');
 
   console.log(fmt,
-    stats.passes || 0,
+    stats.tests || 0,
+    pluralize(stats.tests),
     ms(stats.duration));
 
   // pending
   if (stats.pending) {
     fmt = color('pending', ' ')
-      + color('pending', ' %d pending');
+      + color('pending', ' %d %s pending');
 
-    console.log(fmt, stats.pending);
-  }
-
-  // failures
-  if (stats.failures) {
-    fmt = color('fail', '  %d failing');
-
-    console.error(fmt,
-      stats.failures);
-
-    Base.list(this.failures);
-    console.error();
+    console.log(fmt, stats.pending, pluralize(stats.pending));
   }
 
   console.log();
@@ -2168,34 +2024,6 @@ function colorLines(name, str) {
   return str.split('\n').map(function(str){
     return color(name, str);
   }).join('\n');
-}
-
-/**
- * Stringify `obj`.
- *
- * @param {Mixed} obj
- * @return {String}
- * @api private
- */
-
-function stringify(obj) {
-  if (obj instanceof RegExp) return obj.toString();
-  return JSON.stringify(obj, null, 2);
-}
-
-/**
- * Check that a / b have the same type.
- *
- * @param {Object} a
- * @param {Object} b
- * @return {Boolean}
- * @api private
- */
-
-function sameType(a, b) {
-  a = Object.prototype.toString.call(a);
-  b = Object.prototype.toString.call(b);
-  return a == b;
 }
 
 }); // module: reporters/base.js
@@ -2506,6 +2334,8 @@ function HTML(runner, root) {
   });
 
   runner.on('test end', function(test){
+    window.scrollTo(0, document.body.scrollHeight);
+
     // TODO: add to stats
     var percent = stats.tests / this.total * 100 | 0;
     if (progress) progress.update(percent).draw(ctx);
@@ -3250,7 +3080,7 @@ exports = module.exports = Min;
 
 function Min(runner) {
   Base.call(this, runner);
-
+  
   runner.on('start', function(){
     // clear screen
     process.stdout.write('\u001b[2J');
@@ -3270,10 +3100,10 @@ F.prototype = Base.prototype;
 Min.prototype = new F;
 Min.prototype.constructor = Min;
 
-
 }); // module: reporters/min.js
 
 require.register("reporters/nyan.js", function(module, exports, require){
+
 /**
  * Module dependencies.
  */
@@ -3296,6 +3126,7 @@ exports = module.exports = NyanCat;
 
 function NyanCat(runner) {
   Base.call(this, runner);
+
   var self = this
     , stats = this.stats
     , width = Base.window.width * .75 | 0
@@ -3311,19 +3142,19 @@ function NyanCat(runner) {
 
   runner.on('start', function(){
     Base.cursor.hide();
-    self.draw();
+    self.draw('start');
   });
 
   runner.on('pending', function(test){
-    self.draw();
+    self.draw('pending');
   });
 
   runner.on('pass', function(test){
-    self.draw();
+    self.draw('pass');
   });
 
   runner.on('fail', function(test, err){
-    self.draw();
+    self.draw('fail');
   });
 
   runner.on('end', function(){
@@ -3334,16 +3165,17 @@ function NyanCat(runner) {
 }
 
 /**
- * Draw the nyan cat
+ * Draw the nyan cat with runner `status`.
  *
+ * @param {String} status
  * @api private
  */
 
-NyanCat.prototype.draw = function(){
+NyanCat.prototype.draw = function(status){
   this.appendRainbow();
   this.drawScoreboard();
   this.drawRainbow();
-  this.drawNyanCat();
+  this.drawNyanCat(status);
   this.tick = !this.tick;
 };
 
@@ -3408,60 +3240,56 @@ NyanCat.prototype.drawRainbow = function(){
 };
 
 /**
- * Draw the nyan cat
+ * Draw the nyan cat with `status`.
  *
+ * @param {String} status
  * @api private
  */
 
-NyanCat.prototype.drawNyanCat = function() {
+NyanCat.prototype.drawNyanCat = function(status) {
   var self = this;
   var startWidth = this.scoreboardWidth + this.trajectories[0].length;
-  var color = '\u001b[' + startWidth + 'C';
-  var padding = '';
 
-  write(color);
-  write('_,------,');
-  write('\n');
+  [0, 1, 2, 3].forEach(function(index) {
+    write('\u001b[' + startWidth + 'C');
 
-  write(color);
-  padding = self.tick ? '  ' : '   ';
-  write('_|' + padding + '/\\_/\\ ');
-  write('\n');
-
-  write(color);
-  padding = self.tick ? '_' : '__';
-  var tail = self.tick ? '~' : '^';
-  var face;
-  write(tail + '|' + padding + this.face() + ' ');
-  write('\n');
-
-  write(color);
-  padding = self.tick ? ' ' : '  ';
-  write(padding + '""  "" ');
-  write('\n');
+    switch (index) {
+      case 0:
+        write('_,------,');
+        write('\n');
+        break;
+      case 1:
+        var padding = self.tick ? '  ' : '   ';
+        write('_|' + padding + '/\\_/\\ ');
+        write('\n');
+        break;
+      case 2:
+        var padding = self.tick ? '_' : '__';
+        var tail = self.tick ? '~' : '^';
+        var face;
+        switch (status) {
+          case 'pass':
+            face = '( ^ .^)';
+            break;
+          case 'fail':
+            face = '( o .o)';
+            break;
+          default:
+            face = '( - .-)';
+        }
+        write(tail + '|' + padding + face + ' ');
+        write('\n');
+        break;
+      case 3:
+        var padding = self.tick ? ' ' : '  ';
+        write(padding + '""  "" ');
+        write('\n');
+        break;
+    }
+  });
 
   this.cursorUp(this.numberOfLines);
 };
-
-/**
- * Draw nyan cat face.
- *
- * @return {String}
- * @api private
- */
-
-NyanCat.prototype.face = function() {
-  var stats = this.stats;
-  if (stats.failures) {
-    return '( x .x)';
-  } else if (stats.pending) {
-    return '( o .o)';
-  } else if(stats.passes) {
-    return '( ^ .^)';
-  } else {
-    return '( - .-)';
-  }
-}
 
 /**
  * Move cursor up `n`.
@@ -3918,7 +3746,7 @@ function XUnit(runner) {
   runner.on('pass', function(test){
     tests.push(test);
   });
-
+  
   runner.on('fail', function(test){
     tests.push(test);
   });
@@ -3929,13 +3757,13 @@ function XUnit(runner) {
       , tests: stats.tests
       , failures: stats.failures
       , errors: stats.failures
-      , skipped: stats.tests - stats.failures - stats.passes
+      , skip: stats.tests - stats.failures - stats.passes
       , timestamp: (new Date).toUTCString()
-      , time: (stats.duration / 1000) || 0
+      , time: stats.duration / 1000
     }, false));
 
     tests.forEach(test);
-    console.log('</testsuite>');
+    console.log('</testsuite>');    
   });
 }
 
@@ -4137,14 +3965,16 @@ Runnable.prototype.inspect = function(){
  */
 
 Runnable.prototype.resetTimeout = function(){
-  var self = this;
-  var ms = this.timeout() || 1e9;
+  var self = this
+    , ms = this.timeout();
 
   this.clearTimeout();
-  this.timer = setTimeout(function(){
-    self.callback(new Error('timeout of ' + ms + 'ms exceeded'));
-    self.timedOut = true;
-  }, ms);
+  if (ms) {
+    this.timer = setTimeout(function(){
+      self.callback(new Error('timeout of ' + ms + 'ms exceeded'));
+      self.timedOut = true;
+    }, ms);
+  }
 };
 
 /**
@@ -4225,6 +4055,7 @@ Runnable.prototype.run = function(fn){
 }); // module: runnable.js
 
 require.register("runner.js", function(module, exports, require){
+
 /**
  * Module dependencies.
  */
@@ -4234,7 +4065,9 @@ var EventEmitter = require('browser/events').EventEmitter
   , Test = require('./test')
   , utils = require('./utils')
   , filter = utils.filter
-  , keys = utils.keys;
+  , keys = utils.keys
+  , noop = function(){}
+  , immediately = global.setImmediate || process.nextTick;
 
 /**
  * Non-enumerable globals.
@@ -4270,7 +4103,6 @@ module.exports = Runner;
  *   - `hook end`  (hook) hook complete
  *   - `pass`  (test) test passed
  *   - `fail`  (test, err) test failed
- *   - `pending`  (test) test pending
  *
  * @api public
  */
@@ -4286,15 +4118,6 @@ function Runner(suite) {
   this.grep(/.*/);
   this.globals(this.globalProps().concat(['errno']));
 }
-
-/**
- * Wrapper for setImmediate, process.nextTick, or browser polyfill.
- *
- * @param {Function} fn
- * @api private
- */
-
-Runner.immediately = global.setImmediate || process.nextTick;
 
 /**
  * Inherit from `EventEmitter.prototype`.
@@ -4396,15 +4219,10 @@ Runner.prototype.checkGlobals = function(test){
   var leaks;
 
   // check length - 2 ('errno' and 'location' globals)
-  if (isNode && 1 == ok.length - globals.length) return;
+  if (isNode && 1 == ok.length - globals.length) return
   else if (2 == ok.length - globals.length) return;
 
-  if(this.prevGlobalsLength == globals.length) return;
-  this.prevGlobalsLength = globals.length;
-
-  //console.time('filterLeaksTime');
   leaks = filterLeaks(ok, globals);
-  //console.timeEnd('filterLeaksTime');
   this._globals = this._globals.concat(leaks);
 
   if (leaks.length > 1) {
@@ -4468,10 +4286,7 @@ Runner.prototype.hook = function(name, fn){
   function next(i) {
     var hook = hooks[i];
     if (!hook) return fn();
-    if (self.failures && suite.bail()) return fn();
     self.currentRunnable = hook;
-
-    hook.ctx.currentTest = self.test;
 
     self.emit('hook', hook);
 
@@ -4485,12 +4300,11 @@ Runner.prototype.hook = function(name, fn){
       if (testError) self.fail(self.test, testError);
       if (err) return self.failHook(hook, err);
       self.emit('hook end', hook);
-      delete hook.ctx.currentTest;
       next(++i);
     });
   }
 
-  Runner.immediately(function(){
+  immediately(function(){
     next(0);
   });
 };
@@ -4770,23 +4584,10 @@ Runner.prototype.run = function(fn){
 
 function filterLeaks(ok, globals) {
   return filter(globals, function(key){
-    // Firefox and Chrome exposes iframes as index inside the window object
-    if (/^d+/.test(key)) return false;
-
-    // in firefox
-    // if runner runs in an iframe, this iframe's window.getInterface method not init at first
-    // it is assigned in some seconds
-    if (global.navigator && /^getInterface/.test(key)) return false;
-
-    // an iframe could be approached by window[iframeIndex]
-    // in ie6,7,8 and opera, iframeIndex is enumerable, this could cause leak
-    if (global.navigator && /^\d+/.test(key)) return false;
-
-    // Opera and IE expose global variables for HTML element IDs (issue #243)
-    if (/^mocha-/.test(key)) return false;
-
     var matched = filter(ok, function(ok){
       if (~ok.indexOf('*')) return 0 == key.indexOf(ok.split('*')[0]);
+      // Opera and IE expose global variables for HTML element IDs (issue #243)
+      if (/^mocha-/.test(key)) return true;
       return key == ok;
     });
     return matched.length == 0 && (!global.navigator || 'onerror' !== key);
@@ -5140,6 +4941,7 @@ Test.prototype.constructor = Test;
 }); // module: test.js
 
 require.register("utils.js", function(module, exports, require){
+
 /**
  * Module dependencies.
  */
@@ -5204,7 +5006,7 @@ exports.indexOf = function(arr, obj, start){
 
 /**
  * Array#reduce (<=IE8)
- *
+ * 
  * @param {Array} array
  * @param {Function} fn
  * @param {Object} initial value
@@ -5304,7 +5106,7 @@ exports.files = function(dir, ret){
     path = join(dir, path);
     if (fs.statSync(path).isDirectory()) {
       exports.files(path, ret);
-    } else if (path.match(/\.(js|coffee|litcoffee|coffee.md)$/)) {
+    } else if (path.match(/\.(js|coffee)$/)) {
       ret.push(path);
     }
   });
@@ -5337,8 +5139,8 @@ exports.clean = function(str) {
     .replace(/^function *\(.*\) *{/, '')
     .replace(/\s+\}$/, '');
 
-  var whitespace = str.match(/^\n?(\s*)/)[1]
-    , re = new RegExp('^' + whitespace, 'gm');
+  var spaces = str.match(/^\n?( *)/)[1].length
+    , re = new RegExp('^ {' + spaces + '}', 'gm');
 
   str = str.replace(re, '');
 
@@ -5423,19 +5225,6 @@ exports.highlightTags = function(name) {
 };
 
 }); // module: utils.js
-// The global object is "self" in Web Workers.
-global = (function() { return this; })();
-
-/**
- * Save timer references to avoid Sinon interfering (see GH-237).
- */
-
-var Date = global.Date;
-var setTimeout = global.setTimeout;
-var setInterval = global.setInterval;
-var clearTimeout = global.clearTimeout;
-var clearInterval = global.clearInterval;
-
 /**
  * Node shims.
  *
@@ -5445,9 +5234,38 @@ var clearInterval = global.clearInterval;
  * the browser.
  */
 
-var process = {};
+process = {};
 process.exit = function(status){};
 process.stdout = {};
+global = window;
+
+/**
+ * next tick implementation.
+ */
+
+process.nextTick = (function(){
+  // postMessage behaves badly on IE8
+  if (window.ActiveXObject || !window.postMessage) {
+    return function(fn){ fn() };
+  }
+
+  // based on setZeroTimeout by David Baron
+  // - http://dbaron.org/log/20100309-faster-timeouts
+  var timeouts = []
+    , name = 'mocha-zero-timeout'
+
+  window.addEventListener('message', function(e){
+    if (e.source == window && e.data == name) {
+      if (e.stopPropagation) e.stopPropagation();
+      if (timeouts.length) timeouts.shift()();
+    }
+  }, true);
+
+  return function(fn){
+    timeouts.push(fn);
+    window.postMessage(name, '*');
+  }
+})();
 
 /**
  * Remove uncaughtException listener.
@@ -5455,7 +5273,7 @@ process.stdout = {};
 
 process.removeListener = function(e){
   if ('uncaughtException' == e) {
-    global.onerror = function() {};
+    window.onerror = null;
   }
 };
 
@@ -5465,90 +5283,59 @@ process.removeListener = function(e){
 
 process.on = function(e, fn){
   if ('uncaughtException' == e) {
-    global.onerror = function(err, url, line){
+    window.onerror = function(err, url, line){
       fn(new Error(err + ' (' + url + ':' + line + ')'));
     };
   }
 };
 
-/**
- * Expose mocha.
- */
+// boot
+;(function(){
 
-var Mocha = global.Mocha = require('mocha'),
-    mocha = global.mocha = new Mocha({ reporter: 'html' });
+  /**
+   * Expose mocha.
+   */
 
-var immediateQueue = []
-  , immediateTimeout;
+  var Mocha = window.Mocha = require('mocha'),
+      mocha = window.mocha = new Mocha({ reporter: 'html' });
 
-function timeslice() {
-  var immediateStart = new Date().getTime();
-  while (immediateQueue.length && (new Date().getTime() - immediateStart) < 100) {
-    immediateQueue.shift()();
-  }
-  if (immediateQueue.length) {
-    immediateTimeout = setTimeout(timeslice, 0);
-  } else {
-    immediateTimeout = null;
-  }
-}
+  /**
+   * Override ui to ensure that the ui functions are initialized.
+   * Normally this would happen in Mocha.prototype.loadFiles.
+   */
 
-/**
- * High-performance override of Runner.immediately.
- */
+  mocha.ui = function(ui){
+    Mocha.prototype.ui.call(this, ui);
+    this.suite.emit('pre-require', window, null, this);
+    return this;
+  };
 
-Mocha.Runner.immediately = function(callback) {
-  immediateQueue.push(callback);
-  if (!immediateTimeout) {
-    immediateTimeout = setTimeout(timeslice, 0);
-  }
-};
+  /**
+   * Setup mocha with the given setting options.
+   */
 
-/**
- * Override ui to ensure that the ui functions are initialized.
- * Normally this would happen in Mocha.prototype.loadFiles.
- */
+  mocha.setup = function(opts){
+    if ('string' == typeof opts) opts = { ui: opts };
+    for (var opt in opts) this[opt](opts[opt]);
+    return this;
+  };
 
-mocha.ui = function(ui){
-  Mocha.prototype.ui.call(this, ui);
-  this.suite.emit('pre-require', global, null, this);
-  return this;
-};
+  /**
+   * Run mocha, returning the Runner.
+   */
 
-/**
- * Setup mocha with the given setting options.
- */
+  mocha.run = function(fn){
+    var options = mocha.options;
+    mocha.globals('location');
 
-mocha.setup = function(opts){
-  if ('string' == typeof opts) opts = { ui: opts };
-  for (var opt in opts) this[opt](opts[opt]);
-  return this;
-};
+    var query = Mocha.utils.parseQuery(window.location.search || '');
+    if (query.grep) mocha.grep(query.grep);
+    if (query.invert) mocha.invert();
 
-/**
- * Run mocha, returning the Runner.
- */
-
-mocha.run = function(fn){
-  var options = mocha.options;
-  mocha.globals('location');
-
-  var query = Mocha.utils.parseQuery(global.location.search || '');
-  if (query.grep) mocha.grep(query.grep);
-  if (query.invert) mocha.invert();
-
-  return Mocha.prototype.run.call(mocha, function(){
-    // The DOM Document is not available in Web Workers.
-    if (global.document) {
+    return Mocha.prototype.run.call(mocha, function(){
       Mocha.utils.highlightTags('code');
-    }
-    if (fn) fn();
-  });
-};
-
-/**
- * Expose the process shim.
- */
-
-Mocha.process = process;
+      if (fn) fn();
+    });
+  };
+})();
 })();
