@@ -1,7 +1,7 @@
 /*
  * Compact promise pattern implementation and more. (https://github.com/mathieumast/profmk)
  * 
- * Version : 0.7.2
+ * Version : 0.7.3
  * 
  * Copyright (c) 2013, Mathieu MAST
  * 
@@ -28,6 +28,15 @@
      */
     profmk.invoke = function(context, func) {
         return func.apply(context, profmk.slice(arguments, 2));
+    };
+    
+    /*
+     * Asynchrone invoke for context and many arguments without return.
+     */
+    profmk.invokeAsync = function(context, func) {
+        setTimeout(function() {
+            func.apply(context, profmk.slice(arguments, 2));
+        }, 1);
     };
 
     /*
@@ -192,7 +201,7 @@
          * Publish data in array.
          */
         this.publishArray = function(channel, array) {
-            profmk.async(this, function() {
+            profmk.invokeAsync(this, function() {
                 if (!_subscribersMap[channel])
                   _subscribersMap[channel] = [];
                 var subs = profmk.slice(_subscribersMap[channel]), i = 0, l = !subs ? 0 : subs.length;
