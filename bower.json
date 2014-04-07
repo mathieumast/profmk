@@ -1,0 +1,7 @@
+{
+  "name": "profmk",
+  "description": "Compact promise pattern implementation and more.",
+  "version": "0.7.4",
+  "main" : "profmk.js",
+  "license" : "MIT"
+}
