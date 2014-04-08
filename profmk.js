@@ -1,7 +1,7 @@
 /*
  * Compact promise pattern implementation and more. (https://github.com/mathieumast/profmk)
  * 
- * Version : 0.7.4
+ * Version : 0.7.5
  * 
  * Copyright (c) 2013, Mathieu MAST
  * 
@@ -29,7 +29,7 @@
     profmk.invoke = function(context, func) {
         return func.apply(context, profmk.slice(arguments, 2));
     };
-    
+
     /*
      * Asynchrone invoke for context and many arguments without return.
      */
@@ -203,7 +203,7 @@
         this.publishArray = function(channel, array) {
             profmk.invokeAsync(this, function() {
                 if (!_subscribersMap[channel])
-                  _subscribersMap[channel] = [];
+                    _subscribersMap[channel] = [];
                 var subs = profmk.slice(_subscribersMap[channel]), i = 0, l = !subs ? 0 : subs.length;
                 for (; i < l; i++) {
                     if (subs[i].callback.apply(subs[i].context, array) === false)
@@ -405,8 +405,13 @@
         define('profmk', function() {
             return profmk;
         });
-    } else if (typeof module != 'undefined' && module.exports) {
-        module.exports = profmk;
+    }
+
+    if (typeof exports !== 'undefined') {
+        if (typeof module !== 'undefined' && module.exports) {
+            exports = module.exports = profmk;
+        }
+        exports.profmk = profmk;
     } else {
         var root = this;
         root['profmk'] = profmk;
