@@ -354,9 +354,9 @@
             return profmk;
         });
     }
-    var root = typeof exports !== "undefined" && exports !== null ? exports : this;
+    root = typeof exports !== "undefined" && exports !== null ? exports : this;
     if (typeof module !== 'undefined' && module.exports) {
-        exports = module.exports = profmk;
+        module.exports = profmk;
     }
     root.profmk = profmk;
 }).call(this);
