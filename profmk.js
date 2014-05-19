@@ -1,9 +1,9 @@
 /*
  * Compact promise pattern implementation and more. (https://github.com/mathieumast/profmk)
  * 
- * Version : 0.7.5
+ * Version : 0.8.0
  * 
- * Copyright (c) 2013, Mathieu MAST
+ * Copyright (c) 2013 - 2014, Mathieu MAST
  * 
  * Licensed under the MIT license
  */
@@ -51,58 +51,6 @@
     };
 
     /*
-     * Returns the index of item in the array or -1 if item is not found.
-     */
-    profmk.indexOf = Array.prototype.indexOf || function(array, item) {
-        var i = 0, l = array.length;
-        for (; i < l; i++) {
-            if (array[i] === item)
-                return i;
-        }
-        return -1;
-    };
-
-    /*
-     * Returns true if value is undefined.
-     */
-    profmk.isUndefined = function(value) {
-        return !value ? typeof value == 'undefined' : false;
-    };
-
-    /*
-     * Returns true if value is null.
-     */
-    profmk.isNull = function(value) {
-        return value === null;
-    };
-
-    /*
-     * Returns true if value is an object.
-     */
-    profmk.isObject = function(value) {
-        return !value ? false : value === Object(value);
-    };
-
-    /*
-     * Returns true if value is an boolean.
-     */
-    profmk.isBoolean = function(value) {
-        return (value === true || value === false || Object.prototype.toString.call(value) == '[object Boolean]');
-    };
-
-    /*
-     * Function isArray, isObject, isFunction, isString, isNumber, isDate, isRegExp.
-     */
-    var typesElems = ['Array', 'Function', 'String', 'Number', 'Date', 'RegExp'];
-    for (var i = 0; i < typesElems.length; i++) {
-        profmk.invoke(profmk, function(type) {
-            this['is' + type] = function(value) {
-                return !value ? false : Object.prototype.toString.call(value) == '[object ' + type + ']';
-            };
-        }, typesElems[i]);
-    }
-
-    /*
      * Extend object.
      */
     profmk.extend = function(dest) {
@@ -119,7 +67,7 @@
      * Create a new instance of function and arguments in array.
      */
     profmk.instantiate = function(func, array) {
-        var i = 0, l = profmk.isArray(array) ? array.length : 0, q = [];
+        var i = 0, l = array.length ? array.length : 0, q = [];
         switch (l) {
             case 0:
                 return new func();
@@ -160,7 +108,7 @@
         this.subscribe = function(subscriber) {
             if (!_subscribersMap[subscriber.channel])
                 _subscribersMap[subscriber.channel] = [];
-            if (!profmk.isFunction(subscriber.callback))
+            if (typeof subscriber.callback !== 'function')
                 return this;
             var subs = _subscribersMap[subscriber.channel], i = subs.length - 1;
             subscriber.i = i + 1;
@@ -343,11 +291,11 @@
         var _results = [], _remaining = objs.length, i = 0, l = objs.length, _self = this;
         for (; i < l; i++) {
             var elem = objs[i], promise;
-            if (profmk.isUndefined(elem) || profmk.isNull(elem))
+            if (!elem)
                 promise = profmk.future().notifyDone(null).promise();
-            else if (profmk.isFunction(elem.then))
-                promise = profmk.isFunction(elem.promise) ? elem.promise() : elem;
-            else if (profmk.isFunction(elem))
+            else if (typeof elem.then === 'function')
+                promise = (typeof elem.promise === 'function') ? elem.promise() : elem;
+            else if (typeof elem === 'function')
                 promise = profmk.async(_self, elem, profmk.slice(arguments, 2));
             else
                 promise = profmk.future().notifyDone(elem).promise();
@@ -401,19 +349,14 @@
     /*
      * Export profmk.
      */
-    if (typeof define == 'function' && define.amd) {
-        define('profmk', function() {
+    if (typeof define === 'function' && define.amd) {
+        define('profmk', [], function() {
             return profmk;
         });
     }
-
-    if (typeof exports !== 'undefined') {
-        if (typeof module !== 'undefined' && module.exports) {
-            exports = module.exports = profmk;
-        }
-        exports.profmk = profmk;
-    } else {
-        var root = this;
-        root['profmk'] = profmk;
+    var root = typeof exports !== "undefined" && exports !== null ? exports : this;
+    if (typeof module !== 'undefined' && module.exports) {
+        exports = module.exports = profmk;
     }
+    root.profmk = profmk;
 }).call(this);
