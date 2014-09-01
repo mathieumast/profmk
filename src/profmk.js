@@ -1,10 +1,7 @@
 /*
  * Compact promise pattern implementation and more.
- * 
- * Version : 1.0.0
- * 
+ * Version : 1.0.1
  * Copyright (c) 2013 - 2014, Mathieu MAST https://github.com/mathieumast/profmk
- * 
  * Licensed under the MIT license
  */
 (function() {

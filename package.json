@@ -1,16 +1,16 @@
 {
-  "name": "profmk",
-  "description": "Compact promise pattern implementation and more",
-  "version": "1.0.0",
-  "author": "Mathieu MAST",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mathieumast/profmk.git"
-  },
-  "devDependencies": {
-    "mocha": "1.19.0",
-    "chai": "1.9.1",
-    "requirejs": "2.1.11"
-  }
+    "name": "profmk",
+    "description": "Compact promise pattern implementation and more.",
+    "version": "1.0.1",
+    "author": "Mathieu MAST",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mathieumast/profmk.git"
+    },
+    "devDependencies": {
+        "mocha": "1.19.0",
+        "chai": "1.9.1",
+        "requirejs": "2.1.11"
+    }
 }
